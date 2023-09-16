@@ -736,6 +736,7 @@ LONG CALLBACK VMPSysenterHandler(EXCEPTION_POINTERS* info)
                             NTCLOSE = 0x18E,
                             NTPROTECTVIRTUALMEMORY = 0xCE,
                             NTQUERYVIRTUALMEMORY = 0x97,
+                            NTQUERYSYSTEMINFORMATION = 0x9D
                         };
 
 
@@ -914,6 +915,23 @@ LONG CALLBACK VMPSysenterHandler(EXCEPTION_POINTERS* info)
                                 meminfoclass,
                                 MemoryInformation,
                                 MemoryInformationLength,
+                                ReturnLength
+                            );
+
+                            info->ContextRecord->Eip += 2;
+                            break;
+                        }
+                        case SYSCALLNAME::NTQUERYSYSTEMINFORMATION:
+                        {
+                            SYSTEM_INFORMATION_CLASS SysteminformationClass = *reinterpret_cast<SYSTEM_INFORMATION_CLASS*>(FuncArgs);
+                            PVOID SystemInformation = *reinterpret_cast<PVOID*>((ULONG_PTR*)FuncArgs + 1);
+                            ULONG SystemInformationLength = *reinterpret_cast<ULONG*>((ULONG_PTR*)FuncArgs + 2);
+                            PULONG ReturnLength = *reinterpret_cast<PULONG*>((ULONG_PTR*)FuncArgs + 3);
+
+                            info->ContextRecord->Eax = NtQuerySystemInformation(
+                                SysteminformationClass,
+                                SystemInformation,
+                                SystemInformationLength,
                                 ReturnLength
                             );
 
